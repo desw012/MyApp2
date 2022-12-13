@@ -1,11 +1,14 @@
 package com.pdi.test;
 
+import android.app.Application;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,12 +17,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 public class WebAppInterface {
-    public static FirebaseAnalytics mFirebaseAnalytics;
-    public static String[] ga4_cid = new String[1];
+    private FirebaseAnalytics mFirebaseAnalytics;
+
+    public WebAppInterface(FirebaseAnalytics firebaseAnalytics){
+        mFirebaseAnalytics = firebaseAnalytics;
+    }
+
+    public WebAppInterface(@NotNull Context context){
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(context);
+    }
 
     @JavascriptInterface
     public void GA_DATA(String JsonData) {
@@ -28,35 +37,41 @@ public class WebAppInterface {
             JSONObject data = new JSONObject(JsonData);
 
             String sType ="";
-            String en = "";
+            String eventName = "";
             String location = "";
             String title = "";
 
             if (data.has("type")) sType = data.getString("type");
-            if (data.has("event_name")) en = data.getString("event_name");
-            if (data.has("location")) location = data.getString("location").substring(0,100);
+            if (data.has("event_name")) eventName = data.getString("event_name");
+            if (data.has("location")) location = data.getString("location");
             if (data.has("title")) title = data.getString("title");
 
             Iterator<String> sIterator = data.keys();
             while(sIterator.hasNext()){
                 String key = sIterator.next();
-                if(key.contains("ep_")) params.putString(key,data.getString(key));
-                else if(key.contains("up_")) mFirebaseAnalytics.setUserProperty(key,data.getString(key));
+                if(key.contains("ep_")) params.putString(key, data.getString(key));
+                else if(key.contains("up_")) mFirebaseAnalytics.setUserProperty(key, data.getString(key));
             }
 
 //            mFirebaseAnalytics.setUserProperty("up_cid", ga4_cid[0]);
 //            mFirebaseAnalytics.setUserId(data.getString("up_uid"));
 
-            if(sType.equals("P")){ // 스크린뷰일 때
-                if(data.has("title")) params.putString(FirebaseAnalytics.Param.SCREEN_NAME, title);
-                if(data.has("location")) params.putString(FirebaseAnalytics.Param.SCREEN_CLASS, location);
-                mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW,params);
-            }else if(sType.equals("E")){ // 이벤트일 때
-                mFirebaseAnalytics.logEvent(en,params);
-            }else if(sType.equals("Ecommerce")){
-                params = ecommerce_parse(params,data);
-                en = data.getString("EcommerceStep").toLowerCase();
-                mFirebaseAnalytics.logEvent(en,params);
+            if(sType.equals("screen")) { // 스크린뷰일 때
+                if (data.has("title")) params.putString(FirebaseAnalytics.Param.SCREEN_NAME, title);
+                if (data.has("location"))
+                    params.putString(FirebaseAnalytics.Param.SCREEN_CLASS, location);
+                mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, params);
+            } else {
+                if (data.has("category")) params.putString("category", data.getString("category"));
+                if (data.has("action")) params.putString("action", data.getString("action"));
+                if (data.has("label")) params.putString("label", data.getString("label"));
+
+                if(sType.equals("ecommerce")){
+                    params = ecommerce_parse(params,data);
+                    eventName = data.getString("EcommerceStep").toLowerCase();
+                }
+
+                mFirebaseAnalytics.logEvent(eventName, params);
             }
         } catch (Exception ex) {
             Log.i("GA4_WebInterface_Error", ex.getMessage());
@@ -72,6 +87,7 @@ public class WebAppInterface {
                 currencyCode = obj_ecommerce.getString("currencyCode");
                 params.putString(FirebaseAnalytics.Param.CURRENCY, currencyCode);
             }
+
             if (obj_ecommerce.has("transaction")) {
                 actionfield = obj_ecommerce.getJSONObject("transaction");
                 if (actionfield.has("currencyCode")) {

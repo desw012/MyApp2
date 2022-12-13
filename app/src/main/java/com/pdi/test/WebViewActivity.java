@@ -29,7 +29,7 @@ public class WebViewActivity extends AppCompatActivity {
 
         //웹뷰와 네이티브간의 통신을 위한 javascript interface 를 추가.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            binding.webview.addJavascriptInterface(new WebAppInterface(), "gascriptAndroid");
+            binding.webview.addJavascriptInterface(new WebAppInterface(this), "gascriptAndroid");
         } else {
             Log.w(this.getClass().getName(), "Not adding JavaScriptInterface, API Version: " + Build.VERSION.SDK_INT);
         }

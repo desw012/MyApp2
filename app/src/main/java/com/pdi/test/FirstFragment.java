@@ -6,14 +6,23 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.pdi.test.databinding.FragmentFirstBinding;
 
 public class FirstFragment extends Fragment {
 
     private FragmentFirstBinding binding;
+    private FirebaseAnalytics mFirebaseAnalytics;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(getActivity());
+    }
 
     @Override
     public View onCreateView(
@@ -44,4 +53,13 @@ public class FirstFragment extends Fragment {
         binding = null;
     }
 
+    @Override
+    public void onResume() {
+//        Bundle bundle = new Bundle();
+//        bundle.putString(FirebaseAnalytics.Param.SCREEN_NAME, "Fragment 1");
+//        bundle.putString(FirebaseAnalytics.Param.SCREEN_CLASS, "FirstFragment");
+//        mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, new Bundle());
+
+        super.onResume();
+    }
 }
