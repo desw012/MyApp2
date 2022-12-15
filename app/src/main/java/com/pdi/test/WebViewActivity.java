@@ -7,6 +7,7 @@ import android.util.Log;
 import androidx.appcompat.app.AppCompatActivity;
 
 //import com.gp.ga.webview.GAWebViewInterface;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.pdi.test.databinding.ActivityWebViewBinding;
 
 public class WebViewActivity extends AppCompatActivity {
@@ -35,5 +36,15 @@ public class WebViewActivity extends AppCompatActivity {
         }
 
         binding.webview.loadUrl("http://10.0.2.2:3001");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        Bundle bundle = new Bundle();
+        bundle.putString(FirebaseAnalytics.Param.SCREEN_NAME, "TEST_SCREEN_NAME");
+        bundle.putString(FirebaseAnalytics.Param.SCREEN_CLASS, "TEST_CLASS_NAME");
+        FirebaseAnalytics.getInstance(this).logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundle);
     }
 }
